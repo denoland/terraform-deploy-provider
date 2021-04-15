@@ -21,6 +21,9 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			// TODO
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"deno_deploy_user": DataSourceUser(),
+		},
 		ConfigureContextFunc: providerConfigure,
 	}
 }
