@@ -1,6 +1,6 @@
 HOSTNAME=github.com
 NAMESPACE=wperron
-NAME=deno-deploy
+NAME=deploy
 BINARY=terraform-provider-${NAME}
 VERSION=0.1
 OS_ARCH=linux_amd64

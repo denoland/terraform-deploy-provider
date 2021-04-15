@@ -1,11 +1,11 @@
-package denodeploy
+package deploy
 
 import (
 	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	deployclient "github.com/wperron/terraform-deno-deploy-provider/deploy-client"
+	deployclient "github.com/wperron/terraform-deno-deploy-provider/client"
 )
 
 func DataSourceUser() *schema.Resource {

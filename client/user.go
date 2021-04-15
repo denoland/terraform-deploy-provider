@@ -1,4 +1,4 @@
-package deployclient
+package client
 
 import (
 	"time"

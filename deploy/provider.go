@@ -1,11 +1,11 @@
-package denodeploy
+package deploy
 
 import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	deployclient "github.com/wperron/terraform-deno-deploy-provider/deploy-client"
+	deployclient "github.com/wperron/terraform-deno-deploy-provider/client"
 )
 
 func Provider() *schema.Provider {
