@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	deployclient "github.com/wperron/terraform-deno-deploy-provider/client"
+	"github.com/wperron/terraform-deploy-provider/client"
 )
 
 func Provider() *schema.Provider {
@@ -14,7 +14,6 @@ func Provider() *schema.Provider {
 			"api_token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DENO_DEPLOY_TOKEN", nil),
 				Description: "API Token used for accessing Deno Deploy",
 			},
 		},
@@ -22,7 +21,7 @@ func Provider() *schema.Provider {
 			// TODO
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"deno_deploy_user": DataSourceUser(),
+			"deploy_user": DataSourceUser(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
@@ -34,7 +33,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c := deployclient.New(token)
+	c := client.New(token)
 
 	return c, diags
 }

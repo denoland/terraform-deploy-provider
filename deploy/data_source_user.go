@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	deployclient "github.com/wperron/terraform-deno-deploy-provider/client"
+	"github.com/wperron/terraform-deploy-provider/client"
 )
 
 func DataSourceUser() *schema.Resource {
@@ -29,7 +29,7 @@ func DataSourceUser() *schema.Resource {
 }
 
 func dataSourceUserRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(*deployclient.Client)
+	c := m.(*client.Client)
 
 	res, err := c.CurrentUser()
 

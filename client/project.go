@@ -181,7 +181,7 @@ func (c *Client) ListDeployments(projectId string, pageOpts PageOptions) ([]Depl
 		qs.Set("limit", fmt.Sprint(pageOpts.Limit))
 	}
 
-	err := c.request("GET", path, qs, nil, result)
+	err := c.request("GET", path, qs, nil, &result)
 	if err != nil {
 		return []Deployment{}, PagingInfo{}, err
 	}
@@ -223,7 +223,7 @@ func (c *Client) Unlink(projectId string) error {
 func (c *Client) ListDomains(projectId string) ([]Domain, error) {
 	path := fmt.Sprintf("/api/projects/%s/domains", projectId)
 	result := []Domain{}
-	err := c.request("GET", path, nil, nil, result)
+	err := c.request("GET", path, nil, nil, &result)
 	if err != nil {
 		return result, err
 	}
@@ -244,7 +244,7 @@ func (c *Client) AddDomain(projectId string, newDomain AddDomainRequest) (Domain
 	}
 
 	result := Domain{}
-	err = c.request("POST", path, nil, bytes.NewBuffer(bs), result)
+	err = c.request("POST", path, nil, bytes.NewBuffer(bs), &result)
 	if err != nil {
 		return result, err
 	}
@@ -255,7 +255,7 @@ func (c *Client) AddDomain(projectId string, newDomain AddDomainRequest) (Domain
 func (c *Client) GetDomain(projectId, domainName string) (Domain, error) {
 	path := fmt.Sprintf("/api/projects/%s/domains/%s", projectId, domainName)
 	result := Domain{}
-	err := c.request("GET", path, nil, nil, result)
+	err := c.request("GET", path, nil, nil, &result)
 	if err != nil {
 		return result, err
 	}

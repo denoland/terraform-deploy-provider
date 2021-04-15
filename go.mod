@@ -1,4 +1,4 @@
-module github.com/wperron/terraform-deno-deploy-provider
+module github.com/wperron/terraform-deploy-provider
 
 go 1.16
 
