@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 )
 
 type Project struct {
-	Id                      string
+	Id                      string      `json:"id"`
 	Name                    string      `json:"name"`
-	Git                     GitHubLink  `json:"git,omitempty"`
+	Git                     *GitHubLink `json:"git,omitempty"`
 	ProductionDeployment    *Deployment `json:"productionDeployment,omitempty"`
 	HasProductionDeployment bool        `json:"hasProductionDeployment"`
 	EnvVars                 EnvVars     `json:"envVars"`
@@ -138,10 +139,15 @@ func (c *Client) DeleteProject(projectId string) error {
 func (c *Client) GetProject(projectId string) (Project, error) {
 	path := fmt.Sprintf("/api/projects/%s", projectId)
 	result := Project{}
+	log.Printf("[DEBUG] GET %s", path)
 	err := c.request("GET", path, nil, nil, &result)
 	if err != nil {
+		log.Printf("[DEBUG] Could not find project: %s", err)
 		return result, err
 	}
+
+	bs, _ := json.Marshal(result)
+	log.Printf("[DEBUG] GET Project response body: %s", string(bs))
 
 	return result, nil
 }

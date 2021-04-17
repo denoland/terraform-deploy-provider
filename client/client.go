@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -73,7 +74,7 @@ func (c *Client) request(method, requestPath string, query url.Values, body io.R
 }
 
 func (c *Client) newRequest(method, requestPath string, query url.Values, body io.Reader) (*http.Request, error) {
-	url := baseUrl
+	url := *baseUrl
 	url.Path = path.Join(url.Path, requestPath)
 	url.RawQuery = query.Encode()
 	req, err := http.NewRequest(method, url.String(), body)
@@ -86,5 +87,6 @@ func (c *Client) newRequest(method, requestPath string, query url.Values, body i
 	}
 
 	req.Header.Add("Content-Type", "application/json")
+	log.Printf("[DEBUG] deploy sdk doing request %+v", req)
 	return req, err
 }

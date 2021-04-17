@@ -18,7 +18,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			// TODO
+			"deploy_project": ResourceProject(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"deploy_user": DataSourceUser(),

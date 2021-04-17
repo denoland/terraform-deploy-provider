@@ -23,6 +23,7 @@ func DataSourceUser() *schema.Resource {
 			"github_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -42,7 +43,7 @@ func dataSourceUserRead(d *schema.ResourceData, m interface{}) error {
 	d.SetId(res.Id)
 	d.Set("id", res.Id)
 	d.Set("name", res.Name)
-	d.Set("github_id", res.GitHubID)
+	d.Set("github_id", fmt.Sprint(res.GitHubID))
 
 	return nil
 }
