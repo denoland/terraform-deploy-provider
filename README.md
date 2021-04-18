@@ -1,4 +1,4 @@
-# terraform-deno-deploy-provider
+# terraform-deploy-provider
 
 Terraform provider for Deno Deploy
 
