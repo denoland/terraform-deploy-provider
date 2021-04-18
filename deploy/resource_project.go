@@ -1,3 +1,4 @@
+// Copyright 2021 William Perron. All rights reserved. MIT License.
 package deploy
 
 import (
@@ -74,12 +75,18 @@ func readProject(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if project.Git != nil {
-		d.Set("git", fmt.Sprint(project.Git.Repository.ID))
+		if err := d.Set("git", fmt.Sprint(project.Git.Repository.ID)); err != nil {
+			return err
+		}
 	}
 	if project.ProductionDeployment != nil {
-		d.Set("production_deployment", project.ProductionDeployment.ID)
+		if err := d.Set("production_deployment", project.ProductionDeployment.ID); err != nil {
+			return err
+		}
 	}
-	d.Set("has_production_deployment", project.HasProductionDeployment)
+	if err := d.Set("has_production_deployment", project.HasProductionDeployment); err != nil {
+		return err
+	}
 	return nil
 }
 

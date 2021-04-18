@@ -1,3 +1,4 @@
+// Copyright 2021 William Perron. All rights reserved. MIT License.
 package client
 
 import (

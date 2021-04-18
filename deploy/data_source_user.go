@@ -1,3 +1,4 @@
+// Copyright 2021 William Perron. All rights reserved. MIT License.
 package deploy
 
 import (
@@ -41,9 +42,15 @@ func dataSourceUserRead(d *schema.ResourceData, m interface{}) error {
 	log.Printf("[DEBUG] Received Caller Identity: %s %s", res.ID, res.Name)
 
 	d.SetId(res.ID)
-	d.Set("id", res.ID)
-	d.Set("name", res.Name)
-	d.Set("github_id", fmt.Sprint(res.GitHubID))
+	if err := d.Set("id", res.ID); err != nil {
+		return err
+	}
+	if err := d.Set("name", res.Name); err != nil {
+		return err
+	}
+	if err := d.Set("github_id", fmt.Sprint(res.GitHubID)); err != nil {
+		return err
+	}
 
 	return nil
 }
