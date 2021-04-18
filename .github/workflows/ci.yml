@@ -9,18 +9,19 @@ on:
       - main
 
 jobs:
-  name: format & lint
-  runs-on: ubuntu-latest
-  steps:
-  - uses: actions/checkout@v2
-  - name: Set up Go
-    uses: actions/setup-go@v2
-    with:
-      go-version: 1.16
-  - name: Check format
-    runs: gofmt -l .
-  - name: Chec lint
-    uses: golangci/golangci-lint-action@v2
-    with:
-      version: latest
-  - uses: dprint/check@v1.3
+  format:
+    name: format & lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16
+    - name: Check format
+      runs: gofmt -l .
+    - name: Chec lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: latest
+    - uses: dprint/check@v1.3
