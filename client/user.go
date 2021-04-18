@@ -4,8 +4,9 @@ import (
 	"time"
 )
 
+// A User of the Deploy platform.
 type User struct {
-	Id        string    `json:"id"`
+	ID        string    `json:"id"`
 	Login     string    `json:"login"`
 	Name      string    `json:"name"`
 	AvatarURL string    `json:"avatarUrl"`
@@ -16,6 +17,8 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+// CurrentUser returns the currently signed in User, the owner of the Token used
+// by the client sdk.
 func (c *Client) CurrentUser() (User, error) {
 	result := User{}
 	err := c.request("GET", "/api/user", nil, nil, &result)

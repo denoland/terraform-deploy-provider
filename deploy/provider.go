@@ -8,6 +8,7 @@ import (
 	"github.com/wperron/terraform-deploy-provider/client"
 )
 
+// Provider for Deno Deploy
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -18,10 +19,10 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"deploy_project": ResourceProject(),
+			"deploy_project": resourceProject(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"deploy_user": DataSourceUser(),
+			"deploy_user": dataSourceUser(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

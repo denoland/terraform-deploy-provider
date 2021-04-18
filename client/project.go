@@ -10,8 +10,27 @@ import (
 	"time"
 )
 
+// A Project represents a Deploy project.
+//
+// Projects can be linked to a public GitHub repository or point directly to a
+// publicly accessible URL. The Project resource contains certain global
+// settings like the name of the project, domain names and environment variables.
+// Projects are made up of Deployments. Every time the source URL is updated or
+// a commit is pushed to the default branch on GitHub, a new Deployment is
+// created and the 'production' deployment is updated.
+//
+// The ProductionDeployment property is a pointer to the Deployment object that
+// represents the latest version of the project. When a project is first created
+// this value is nil and HasProductionDeployment is set to `false`.
+//
+// The Git property is only set if the project is linked to a GitHub repository,
+// otherwise it is nil.
+//
+// A Project also has a circular reference to a Deployment. The Deployment
+// property is only set when accessing the Project directly in the API,
+// otherwise it is omitted.
 type Project struct {
-	Id                      string      `json:"id"`
+	ID                      string      `json:"id"`
 	Name                    string      `json:"name"`
 	Git                     *GitHubLink `json:"git,omitempty"`
 	ProductionDeployment    *Deployment `json:"productionDeployment,omitempty"`
@@ -21,8 +40,12 @@ type Project struct {
 	CreatedAt               time.Time   `json:"createdAt"`
 }
 
+// EnvVars is a simple map used to created environment variables in a Project.
 type EnvVars map[string]string
 
+// A GitHubLink is used in a Project to link it to a GitHub repository. it
+// contains a Repository struct and an entrypoint corresponding to the source
+// code file used as the entrypoint of the project.
 type GitHubLink struct {
 	Repository Repository `json:"repository"`
 	Entrypoint string     `json:"entrypoint"`
@@ -30,54 +53,76 @@ type GitHubLink struct {
 	CreatedAt  time.Time  `json:"createdAt"`
 }
 
+// A Repository is a simple structure containing the information identifying the
+// GitHub repository.
 type Repository struct {
-	Id    int    `json:"id"`
+	ID    int    `json:"id"`
 	Owner string `json:"owner"`
 	Name  string `json:"name"`
 }
 
+// A Deployment is an immutable version of a Project's source code.
+//
+// Each Deployment contains a URL to the source code's entrypoint, the auto
+// generated domain name that was created for the Deployment and a copy of the
+// environment variables of the project when the Deployment was created.
+//
+// If the project is linked to a GitHub repository, it will also contain a
+// CommitInfo containing the summary of the commit.
+//
+// A Deployment also has a circular reference to a Project. The Project property
+// is only set when accessing the Deployment directly in the API, otherwise it
+// is omitted.
 type Deployment struct {
-	Id             string          `json:"id"`
-	Url            string          `json:"url"`
+	ID             string          `json:"id"`
+	URL            string          `json:"url"`
 	DomainMappings []DomainMapping `json:"domainMappings"`
-	RelatedCommit  CommitInfo      `json:"relatedCommit"`
+	RelatedCommit  *CommitInfo     `json:"relatedCommit,omitempty"`
 	Project        *Project        `json:"project"`
-	ProjectId      string          `json:"projectId"`
+	ProjectID      string          `json:"projectId"`
 	EnvVars        EnvVars         `json:"envVars"`
 	UpdatedAt      time.Time       `json:"updatedAt"`
 	CreatedAt      time.Time       `json:"createdAt"`
 }
 
+// A DomainMapping is a simple struct containing to immutable domain name of a
+// Deployment.
 type DomainMapping struct {
 	Domain    string    `json:"domain"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+// A CommitInfo is used for Projects linked to a GitHub repository. It contains
+// the information about the commit that triggered a new Deployment for the
+// Project.
 type CommitInfo struct {
 	Hash                 string `json:"hash"`
 	Message              string `json:"message"`
 	AuthorName           string `json:"authorName"`
 	AuthorEmail          string `json:"authorEmail"`
 	AuthorGitHubUsername string `json:"authorGithubUsername,omitempty"`
-	Url                  string `json:"url,omitempty"`
+	URL                  string `json:"url,omitempty"`
 }
 
+// A Domain is a custom domain name for a Project.
 type Domain struct {
 	Domain       string    `json:"domain"`
 	Token        string    `json:"token"`
 	IsValidated  bool      `json:"isValidated"`
 	Certificates []string  `json:"certificates"` // TODO(wperron) implement TlsCipher struct
-	ProjectId    string    `json:"projectId"`
+	ProjectID    string    `json:"projectId"`
 	UpdatedAt    time.Time `json:"updatedAt"`
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
+// Possible values for the Certificates property of the Domain struct
 const (
-	TlsCipherRsa = "rsa"
-	TlsCipherEc  = "ec"
+	TLSCipherRsa = "rsa"
+	TLSCipherEc  = "ec"
 )
 
+// ListProjects returns a slice of Projects owned by the current User.
 func (c *Client) ListProjects() ([]Project, error) {
 	result := []Project{}
 	err := c.request("GET", "/api/projects", nil, nil, &result)
@@ -88,11 +133,14 @@ func (c *Client) ListProjects() ([]Project, error) {
 	return result, nil
 }
 
+// CreateProjectRequest is the expected request body schema for the
+// CreateProject function.
 type CreateProjectRequest struct {
 	Name    string  `json:"name"`
 	EnvVars EnvVars `json:"envVars"`
 }
 
+// CreateProject creates a new project with the given name.
 func (c *Client) CreateProject(name string, envVars EnvVars) (Project, error) {
 	project := CreateProjectRequest{
 		Name:    name,
@@ -113,12 +161,15 @@ func (c *Client) CreateProject(name string, envVars EnvVars) (Project, error) {
 	return res, nil
 }
 
+// UpdateProjectRequest is the expected request body schema for the
+// UpdateProject function.
 type UpdateProjectRequest struct {
 	Name string `json:"name"`
 }
 
-func (c *Client) UpdateProject(projectId string, newName string) error {
-	path := fmt.Sprintf("/api/projects/%s", projectId)
+// UpdateProject modifies an existing Project.
+func (c *Client) UpdateProject(projectID string, newName string) error {
+	path := fmt.Sprintf("/api/projects/%s", projectID)
 	project := UpdateProjectRequest{
 		Name: newName,
 	}
@@ -131,13 +182,15 @@ func (c *Client) UpdateProject(projectId string, newName string) error {
 	return c.request("PATCH", path, nil, bytes.NewBuffer(bs), nil)
 }
 
-func (c *Client) DeleteProject(projectId string) error {
-	path := fmt.Sprintf("/api/projects/%s", projectId)
+// DeleteProject deletes a Project and all of its associated Deployments.
+func (c *Client) DeleteProject(projectID string) error {
+	path := fmt.Sprintf("/api/projects/%s", projectID)
 	return c.request("DELETE", path, nil, nil, nil)
 }
 
-func (c *Client) GetProject(projectId string) (Project, error) {
-	path := fmt.Sprintf("/api/projects/%s", projectId)
+// GetProject returns the information about a given Project.
+func (c *Client) GetProject(projectID string) (Project, error) {
+	path := fmt.Sprintf("/api/projects/%s", projectID)
 	result := Project{}
 	log.Printf("[DEBUG] GET %s", path)
 	err := c.request("GET", path, nil, nil, &result)
@@ -152,13 +205,21 @@ func (c *Client) GetProject(projectId string) (Project, error) {
 	return result, nil
 }
 
+// NewDeploymentRequest is the expected request body schema for the
+// NewProjectDeployment function.
 type NewDeploymentRequest struct {
-	Url        string `json:"url"`
+	URL        string `json:"url"`
 	Production bool   `json:"production,omitempty"`
 }
 
-func (c *Client) NewProjectDeployment(projectId string, depl NewDeploymentRequest) (Deployment, error) {
-	path := fmt.Sprintf("/api/projects/%s/deployments", projectId)
+// NewProjectDeployment creates a new Deployment for a Project. The URL param
+// is the URL of the source code used for the deployment. The URL needs to be
+// publicly available.
+//
+// Note that this function is not needed to create a new Deployment for a
+// Project linked to a GitHub repository.
+func (c *Client) NewProjectDeployment(projectID string, depl NewDeploymentRequest) (Deployment, error) {
+	path := fmt.Sprintf("/api/projects/%s/deployments", projectID)
 
 	bs, err := json.Marshal(depl)
 	if err != nil {
@@ -174,8 +235,10 @@ func (c *Client) NewProjectDeployment(projectId string, depl NewDeploymentReques
 	return res, nil
 }
 
-func (c *Client) ListDeployments(projectId string, pageOpts PageOptions) ([]Deployment, PagingInfo, error) {
-	path := fmt.Sprintf("/api/projects/%s/deployments", projectId)
+// ListDeployments returns a slice of Deployments owned by the current User for
+// a given Project.
+func (c *Client) ListDeployments(projectID string, pageOpts PageOptions) ([]Deployment, PagingInfo, error) {
+	path := fmt.Sprintf("/api/projects/%s/deployments", projectID)
 	// expected []Deployment at position 0 and PagingInfo at position 1
 	result := []interface{}{}
 
@@ -195,8 +258,9 @@ func (c *Client) ListDeployments(projectId string, pageOpts PageOptions) ([]Depl
 	return result[0].([]Deployment), result[1].(PagingInfo), nil
 }
 
-func (c *Client) GetDeployment(projectId string, deploymentId string) (Deployment, error) {
-	path := fmt.Sprintf("/api/projects/%s/deployments/%s", projectId, deploymentId)
+// GetDeployment returns the information about a given Deployment.
+func (c *Client) GetDeployment(projectID string, deploymentID string) (Deployment, error) {
+	path := fmt.Sprintf("/api/projects/%s/deployments/%s", projectID, deploymentID)
 	result := Deployment{}
 	err := c.request("GET", path, nil, nil, &result)
 	if err != nil {
@@ -206,12 +270,14 @@ func (c *Client) GetDeployment(projectId string, deploymentId string) (Deploymen
 	return result, nil
 }
 
-func (c *Client) GetLogs(projectId string, deploymentId string) (interface{}, error) {
+// GetLogs returns the log lines from a given Deployment
+func (c *Client) GetLogs(projectID string, deploymentID string) (interface{}, error) {
 	return nil, errors.New("unimplemented")
 }
 
-func (c *Client) UpdateEnvVars(projectId string, newVars EnvVars) error {
-	path := fmt.Sprintf("/api/projects/%s/env", projectId)
+// UpdateEnvVars overwrites the environment variables of a given Project.
+func (c *Client) UpdateEnvVars(projectID string, newVars EnvVars) error {
+	path := fmt.Sprintf("/api/projects/%s/env", projectID)
 
 	bs, err := json.Marshal(newVars)
 	if err != nil {
@@ -221,13 +287,19 @@ func (c *Client) UpdateEnvVars(projectId string, newVars EnvVars) error {
 	return c.request("POST", path, nil, bytes.NewBuffer(bs), nil)
 }
 
-func (c *Client) Unlink(projectId string) error {
-	path := fmt.Sprintf("/api/projects/%s/git", projectId)
+// Unlink removes the GitHub integration of a given project.
+//
+// This only affects future Deployments. Any active Deployment that was created
+// when the GitHub repository was linked will still be active.
+func (c *Client) Unlink(projectID string) error {
+	path := fmt.Sprintf("/api/projects/%s/git", projectID)
 	return c.request("DELETE", path, nil, nil, nil)
 }
 
-func (c *Client) ListDomains(projectId string) ([]Domain, error) {
-	path := fmt.Sprintf("/api/projects/%s/domains", projectId)
+// ListDomains returns a list of all the custom domain names associated to the
+// Project.
+func (c *Client) ListDomains(projectID string) ([]Domain, error) {
+	path := fmt.Sprintf("/api/projects/%s/domains", projectID)
 	result := []Domain{}
 	err := c.request("GET", path, nil, nil, &result)
 	if err != nil {
@@ -237,12 +309,16 @@ func (c *Client) ListDomains(projectId string) ([]Domain, error) {
 	return result, nil
 }
 
+// AddDomainRequest is the expected request body schema for the AddDomain
+// function.
 type AddDomainRequest struct {
 	Domain Domain `json:"domain"`
 }
 
-func (c *Client) AddDomain(projectId string, newDomain AddDomainRequest) (Domain, error) {
-	path := fmt.Sprintf("/api/projects/%s/domains", projectId)
+// AddDomain adds a custom domain name to the project. This is typically
+// followed by the VerifyDomain function
+func (c *Client) AddDomain(projectID string, newDomain AddDomainRequest) (Domain, error) {
+	path := fmt.Sprintf("/api/projects/%s/domains", projectID)
 
 	bs, err := json.Marshal(newDomain)
 	if err != nil {
@@ -258,8 +334,12 @@ func (c *Client) AddDomain(projectId string, newDomain AddDomainRequest) (Domain
 	return result, nil
 }
 
-func (c *Client) GetDomain(projectId, domainName string) (Domain, error) {
-	path := fmt.Sprintf("/api/projects/%s/domains/%s", projectId, domainName)
+// GetDomain returns the information about a given custom domain name.
+//
+// This is typically used to retrieve the information about the different
+// records that must be created by the user to properly verify the domain.
+func (c *Client) GetDomain(projectID, domainName string) (Domain, error) {
+	path := fmt.Sprintf("/api/projects/%s/domains/%s", projectID, domainName)
 	result := Domain{}
 	err := c.request("GET", path, nil, nil, &result)
 	if err != nil {
@@ -269,17 +349,25 @@ func (c *Client) GetDomain(projectId, domainName string) (Domain, error) {
 	return result, nil
 }
 
-func (c *Client) DeleteDomain(projectId, domainName string) error {
-	path := fmt.Sprintf("/api/projects/%s/domains/%s", projectId, domainName)
+// DeleteDomain removes a custom domain name associated with a project.
+//
+// This action only removes the custom domain name resolution on the Deploy side.
+// The DNS records will still have to be removed on the user's registrar.
+func (c *Client) DeleteDomain(projectID, domainName string) error {
+	path := fmt.Sprintf("/api/projects/%s/domains/%s", projectID, domainName)
 	return c.request("DELETE", path, nil, nil, nil)
 }
 
-func (c *Client) VerifyDomain(projectId, domainName string) error {
-	path := fmt.Sprintf("/api/projects/%s/domains/%s/verify", projectId, domainName)
+// VerifyDomain sends the signal to Deploy to verify the DNS records for custom
+// domain names. The DNS records must exist prior to starting the verification
+// process. Deploy will not create these for you.
+func (c *Client) VerifyDomain(projectID, domainName string) error {
+	path := fmt.Sprintf("/api/projects/%s/domains/%s/verify", projectID, domainName)
 	return c.request("POST", path, nil, nil, nil)
 }
 
-func (c *Client) ProvisionCertificate(projectId, domainName string) error {
-	path := fmt.Sprintf("/api/projects/%s/domains/%s/certificates", projectId, domainName)
+// ProvisionCertificate creates a valid TLS certificate for a custom domain name.
+func (c *Client) ProvisionCertificate(projectID, domainName string) error {
+	path := fmt.Sprintf("/api/projects/%s/domains/%s/certificates", projectID, domainName)
 	return c.request("POST", path, nil, nil, nil)
 }

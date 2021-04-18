@@ -8,7 +8,7 @@ import (
 	"github.com/wperron/terraform-deploy-provider/client"
 )
 
-func DataSourceUser() *schema.Resource {
+func dataSourceUser() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceUserRead,
 		Schema: map[string]*schema.Schema{
@@ -38,10 +38,10 @@ func dataSourceUserRead(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("Error getting Current User: %w", err)
 	}
 
-	log.Printf("[DEBUG] Received Caller Identity: %s %s", res.Id, res.Name)
+	log.Printf("[DEBUG] Received Caller Identity: %s %s", res.ID, res.Name)
 
-	d.SetId(res.Id)
-	d.Set("id", res.Id)
+	d.SetId(res.ID)
+	d.Set("id", res.ID)
 	d.Set("name", res.Name)
 	d.Set("github_id", fmt.Sprint(res.GitHubID))
 

@@ -12,19 +12,22 @@ import (
 )
 
 var (
-	baseUrl, _ = url.Parse("https://dash.deno.com")
+	baseURL, _ = url.Parse("https://dash.deno.com")
 )
 
+// Client is a simple wrapper around the std HTTP client used for the Deploy sdk.
 type Client struct {
 	HTTPClient *http.Client
 	Token      string
 }
 
+// PageOptions defines the parameters used when requesting a paginated resource.
 type PageOptions struct {
 	Page  int
 	Limit int
 }
 
+// PagingInfo is the structure returned by the API for paginated resources.
 type PagingInfo struct {
 	Page       int `json:"page"`
 	Count      int `json:"count"`
@@ -33,6 +36,7 @@ type PagingInfo struct {
 	TotalPages int `json:"totalPages"`
 }
 
+// New returns a pointer to a new instance of the Deploy sdk
 func New(token string) *Client {
 	return &Client{
 		HTTPClient: http.DefaultClient,
@@ -74,7 +78,7 @@ func (c *Client) request(method, requestPath string, query url.Values, body io.R
 }
 
 func (c *Client) newRequest(method, requestPath string, query url.Values, body io.Reader) (*http.Request, error) {
-	url := *baseUrl
+	url := *baseURL
 	url.Path = path.Join(url.Path, requestPath)
 	url.RawQuery = query.Encode()
 	req, err := http.NewRequest(method, url.String(), body)
