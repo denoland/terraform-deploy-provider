@@ -52,7 +52,7 @@ func resourceProject() *schema.Resource {
 func createProject(d *schema.ResourceData, meta interface{}) error {
 	c := meta.(*client.Client)
 	name := d.Get("name").(string)
-	vars := make(map[string]string)
+	vars := make(client.EnvVars)
 	tmp := d.Get("env_vars").(map[string]interface{})
 	for k, v := range tmp {
 		vars[k] = fmt.Sprint(v)
@@ -100,7 +100,12 @@ func updateProject(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("env_vars") {
-		vars := d.Get("env_vars").(client.EnvVars)
+		vars := make(client.EnvVars)
+		tmp := d.Get("env_vars").(map[string]interface{})
+		for k, v := range tmp {
+			vars[k] = fmt.Sprint(v)
+		}
+
 		if err := c.UpdateEnvVars(d.Id(), vars); err != nil {
 			return err
 		}
