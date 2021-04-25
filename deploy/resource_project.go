@@ -25,6 +25,10 @@ func resourceProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"source_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"production_deployment": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -134,6 +138,15 @@ func createProject(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	if source, ok := d.GetOk("source_url"); ok {
+		if _, err := c.NewProjectDeployment(project.ID, client.NewDeploymentRequest{
+			URL:        source.(string),
+			Production: true,
+		}); err != nil {
+			return err
+		}
+	}
+
 	d.SetId(project.ID)
 	return readProject(d, meta)
 }
@@ -148,6 +161,11 @@ func readProject(d *schema.ResourceData, meta interface{}) error {
 	if project.ProductionDeployment != nil {
 		if err := d.Set("production_deployment", productionDeploymentToTerraformSchema(project.ProductionDeployment)); err != nil {
 			return err
+		}
+		if source, ok := d.GetOk("source_url"); ok && source != project.ProductionDeployment.URL {
+			if err := d.Set("source_url", project.ProductionDeployment.URL); err != nil {
+				return err
+			}
 		}
 	}
 	if err := d.Set("has_production_deployment", project.HasProductionDeployment); err != nil {
@@ -174,6 +192,17 @@ func updateProject(d *schema.ResourceData, meta interface{}) error {
 
 		if err := c.UpdateEnvVars(d.Id(), vars); err != nil {
 			return err
+		}
+	}
+
+	if d.HasChange("source_url") {
+		if source, ok := d.GetOk("source_url"); ok {
+			if _, err := c.NewProjectDeployment(d.Id(), client.NewDeploymentRequest{
+				URL:        source.(string),
+				Production: true,
+			}); err != nil {
+				return err
+			}
 		}
 	}
 

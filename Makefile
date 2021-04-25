@@ -30,3 +30,6 @@ release:
 
 fmt:
 	gofmt -l .
+
+lint:
+	golangci-lint run ./...
