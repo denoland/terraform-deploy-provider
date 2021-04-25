@@ -26,8 +26,34 @@ func resourceProject() *schema.Resource {
 				Required: true,
 			},
 			"source_url": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"github_link"},
+			},
+			"github_link": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"source_url"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"organization": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"repo": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"entrypoint": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
 			},
 			"production_deployment": {
 				Type:     schema.TypeList,
@@ -145,6 +171,17 @@ func createProject(d *schema.ResourceData, meta interface{}) error {
 		}); err != nil {
 			return err
 		}
+	} else if gh, ok := d.GetOk("github_link"); ok {
+		ghLinkList := gh.([]interface{})
+		ghLink := ghLinkList[0].(map[string]interface{})
+		if _, err := c.LinkProject(client.LinkProjectRequest{
+			ProjectID:    d.Id(),
+			Organization: ghLink["organization"].(string),
+			Repo:         ghLink["repo"].(string),
+			Entrypoint:   ghLink["entrypoint"].(string),
+		}); err != nil {
+			return err
+		}
 	}
 
 	d.SetId(project.ID)
@@ -170,6 +207,18 @@ func readProject(d *schema.ResourceData, meta interface{}) error {
 	}
 	if err := d.Set("has_production_deployment", project.HasProductionDeployment); err != nil {
 		return err
+	}
+
+	if project.Git != nil {
+		if err := d.Set("github_link", []map[string]interface{}{
+			{
+				"organization": project.Git.Repository.Owner,
+				"repo":         project.Git.Repository.Name,
+				"entrypoint":   project.Git.Entrypoint,
+			},
+		}); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -200,6 +249,21 @@ func updateProject(d *schema.ResourceData, meta interface{}) error {
 			if _, err := c.NewProjectDeployment(d.Id(), client.NewDeploymentRequest{
 				URL:        source.(string),
 				Production: true,
+			}); err != nil {
+				return err
+			}
+		}
+	}
+
+	if d.HasChange("github_link") {
+		if gh, ok := d.GetOk("github_link"); ok {
+			ghLinkList := gh.([]interface{})
+			ghLink := ghLinkList[0].(map[string]interface{})
+			if _, err := c.LinkProject(client.LinkProjectRequest{
+				ProjectID:    d.Id(),
+				Organization: ghLink["organization"].(string),
+				Repo:         ghLink["repo"].(string),
+				Entrypoint:   ghLink["entrypoint"].(string),
 			}); err != nil {
 				return err
 			}
