@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"time"
 )
 
 // A Project represents a Deploy project.
@@ -37,8 +36,8 @@ type Project struct {
 	ProductionDeployment    *Deployment `json:"productionDeployment,omitempty"`
 	HasProductionDeployment bool        `json:"hasProductionDeployment"`
 	EnvVars                 EnvVars     `json:"envVars"`
-	UpdatedAt               time.Time   `json:"updatedAt"`
-	CreatedAt               time.Time   `json:"createdAt"`
+	UpdatedAt               string      `json:"updatedAt"`
+	CreatedAt               string      `json:"createdAt"`
 }
 
 // EnvVars is a simple map used to created environment variables in a Project.
@@ -50,8 +49,8 @@ type EnvVars map[string]string
 type GitHubLink struct {
 	Repository Repository `json:"repository"`
 	Entrypoint string     `json:"entrypoint"`
-	UpdatedAt  time.Time  `json:"updatedAt"`
-	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  string     `json:"updatedAt"`
+	CreatedAt  string     `json:"createdAt"`
 }
 
 // A Repository is a simple structure containing the information identifying the
@@ -82,16 +81,16 @@ type Deployment struct {
 	Project        *Project        `json:"project"`
 	ProjectID      string          `json:"projectId"`
 	EnvVars        EnvVars         `json:"envVars"`
-	UpdatedAt      time.Time       `json:"updatedAt"`
-	CreatedAt      time.Time       `json:"createdAt"`
+	UpdatedAt      string          `json:"updatedAt"`
+	CreatedAt      string          `json:"createdAt"`
 }
 
 // A DomainMapping is a simple struct containing to immutable domain name of a
 // Deployment.
 type DomainMapping struct {
-	Domain    string    `json:"domain"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	CreatedAt time.Time `json:"createdAt"`
+	Domain    string `json:"domain"`
+	UpdatedAt string `json:"updatedAt"`
+	CreatedAt string `json:"createdAt"`
 }
 
 // A CommitInfo is used for Projects linked to a GitHub repository. It contains
@@ -108,13 +107,13 @@ type CommitInfo struct {
 
 // A Domain is a custom domain name for a Project.
 type Domain struct {
-	Domain       string    `json:"domain"`
-	Token        string    `json:"token"`
-	IsValidated  bool      `json:"isValidated"`
-	Certificates []string  `json:"certificates"` // TODO(wperron) implement TlsCipher struct
-	ProjectID    string    `json:"projectId"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	CreatedAt    time.Time `json:"createdAt"`
+	Domain       string   `json:"domain"`
+	Token        string   `json:"token"`
+	IsValidated  bool     `json:"isValidated"`
+	Certificates []string `json:"certificates"` // TODO(wperron) implement TlsCipher struct
+	ProjectID    string   `json:"projectId"`
+	UpdatedAt    string   `json:"updatedAt"`
+	CreatedAt    string   `json:"createdAt"`
 }
 
 // Possible values for the Certificates property of the Domain struct

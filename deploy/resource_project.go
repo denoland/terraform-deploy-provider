@@ -25,16 +25,87 @@ func resourceProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// TODO(wperron) `git` should map to the Git struct of the client
-			"git": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-			},
 			"production_deployment": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Computed: true,
 				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"url": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"domain_mappings": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeMap,
+								Elem: &schema.Schema{Type: schema.TypeString},
+							},
+						},
+						"related_commit": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"hash": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"message": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"author_name": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"author_email": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"author_github_username": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"url": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
+						},
+						"env_vars": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"updated_at": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"created_at": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
 			},
 			"has_production_deployment": {
 				Type:     schema.TypeBool,
@@ -74,13 +145,8 @@ func readProject(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	if project.Git != nil {
-		if err := d.Set("git", fmt.Sprint(project.Git.Repository.ID)); err != nil {
-			return err
-		}
-	}
 	if project.ProductionDeployment != nil {
-		if err := d.Set("production_deployment", project.ProductionDeployment.ID); err != nil {
+		if err := d.Set("production_deployment", productionDeploymentToTerraformSchema(project.ProductionDeployment)); err != nil {
 			return err
 		}
 	}
@@ -125,4 +191,42 @@ func existsProject(d *schema.ResourceData, meta interface{}) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func productionDeploymentToTerraformSchema(depl *client.Deployment) []interface{} {
+	if depl == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+	tfMap["id"] = depl.ID
+	tfMap["url"] = depl.URL
+	domains := []interface{}{}
+	for _, domain := range depl.DomainMappings {
+		domains = append(domains, map[string]interface{}{
+			"domain":     domain.Domain,
+			"updated_at": domain.UpdatedAt,
+			"created_at": domain.CreatedAt,
+		})
+	}
+	tfMap["domain_mappings"] = domains
+
+	if depl.RelatedCommit != nil {
+		tfMap["related_commit"] = []map[string]interface{}{
+			{
+				"hash":                   depl.RelatedCommit.Hash,
+				"message":                depl.RelatedCommit.Message,
+				"author_name":            depl.RelatedCommit.AuthorName,
+				"author_email":           depl.RelatedCommit.AuthorEmail,
+				"author_github_username": depl.RelatedCommit.AuthorGitHubUsername,
+				"url":                    depl.RelatedCommit.URL,
+			},
+		}
+	}
+
+	tfMap["env_vars"] = depl.EnvVars
+	tfMap["updated_at"] = depl.UpdatedAt
+	tfMap["created_at"] = depl.CreatedAt
+
+	return []interface{}{tfMap}
 }
