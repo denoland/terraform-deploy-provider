@@ -267,6 +267,12 @@ func updateProject(d *schema.ResourceData, meta interface{}) error {
 			}); err != nil {
 				return err
 			}
+		} else if o, n := d.GetChange("github_link"); len(o.([]interface{})) == 1 && len(n.([]interface{})) == 0 {
+			// if the new value is empty but the old value is not, it means the
+			// block was removed and the repo should be unlinked
+			if err := c.Unlink(d.Id()); err != nil {
+				return err
+			}
 		}
 	}
 
