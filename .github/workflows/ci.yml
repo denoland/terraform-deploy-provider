@@ -19,9 +19,12 @@ jobs:
       with:
         go-version: 1.16
     - name: Check format
-      run: gofmt -l .
+      run: |
+        gofmt -l .
     - name: Check lint
       uses: golangci/golangci-lint-action@v2
       with:
         version: latest
     - uses: dprint/check@v1.3
+    - name: Check docs
+      run: make docscheck

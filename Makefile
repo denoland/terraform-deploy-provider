@@ -32,5 +32,15 @@ fmt:
 	gofmt -l .
 	dprint fmt
 
-lint:
+lint: tools
 	golangci-lint run ./...
+
+docscheck: tools
+	@tfproviderdocs check \
+		-allowed-resource-subcategories-file website/allowed-subcategories.txt \
+		-require-resource-subcategory
+
+tools:
+	cd awsproviderlint && go install .
+	cd tools && go install github.com/bflad/tfproviderdocs
+	cd tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
