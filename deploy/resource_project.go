@@ -2,8 +2,6 @@
 package deploy
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/wperron/terraform-deploy-provider/client"
 )
@@ -119,10 +117,24 @@ func resourceProject() *schema.Resource {
 								},
 							},
 						},
-						"env_vars": {
-							Type:     schema.TypeMap,
+						"env_var": {
+							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"value": {
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
+										Elem:      &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
 						},
 						"updated_at": {
 							Type:     schema.TypeString,
@@ -141,10 +153,24 @@ func resourceProject() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"env_vars": {
-				Type:     schema.TypeMap,
+			"env_var": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"value": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+							Elem:      &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -154,9 +180,10 @@ func createProject(d *schema.ResourceData, meta interface{}) error {
 	c := meta.(*client.Client)
 	name := d.Get("name").(string)
 	vars := make(client.EnvVars)
-	tmp := d.Get("env_vars").(map[string]interface{})
-	for k, v := range tmp {
-		vars[k] = fmt.Sprint(v)
+	tmp := d.Get("env_var").([]interface{})
+	for _, v := range tmp {
+		keyval := v.(map[string]interface{})
+		vars[keyval["key"].(string)] = keyval["value"].(string)
 	}
 
 	project, err := c.CreateProject(name, vars)
@@ -232,11 +259,12 @@ func updateProject(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("env_vars") {
+	if d.HasChange("env_var") {
 		vars := make(client.EnvVars)
-		tmp := d.Get("env_vars").(map[string]interface{})
-		for k, v := range tmp {
-			vars[k] = fmt.Sprint(v)
+		tmp := d.Get("env_var").([]interface{})
+		for _, v := range tmp {
+			keyval := v.(map[string]interface{})
+			vars[keyval["key"].(string)] = keyval["value"].(string)
 		}
 
 		if err := c.UpdateEnvVars(d.Id(), vars); err != nil {
@@ -323,7 +351,14 @@ func productionDeploymentToTerraformSchema(depl *client.Deployment) []interface{
 		}
 	}
 
-	tfMap["env_vars"] = depl.EnvVars
+	vars := []map[string]interface{}{}
+	for k, v := range depl.EnvVars {
+		vars = append(vars, map[string]interface{}{
+			"key":   k,
+			"value": v,
+		})
+	}
+	tfMap["env_var"] = vars
 	tfMap["updated_at"] = depl.UpdatedAt
 	tfMap["created_at"] = depl.CreatedAt
 
