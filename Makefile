@@ -41,6 +41,5 @@ docscheck: tools
 		-require-resource-subcategory
 
 tools:
-	cd awsproviderlint && go install .
 	cd tools && go install github.com/bflad/tfproviderdocs
 	cd tools && go install github.com/golangci/golangci-lint/cmd/golangci-lint
