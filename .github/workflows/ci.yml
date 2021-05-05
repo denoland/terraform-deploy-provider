@@ -26,5 +26,5 @@ jobs:
       with:
         version: latest
     - uses: dprint/check@v1.3
-    - name: Check docs
-      run: make docscheck
+    # - name: Check docs
+    #   run: make docscheck
