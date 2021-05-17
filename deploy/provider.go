@@ -20,7 +20,9 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"deploy_project": resourceProject(),
+			"deploy_project":                  resourceProject(),
+			"deploy_custom_domain":            resourceCustomDomain(),
+			"deploy_custom_domain_validation": resourceCustomDomainValidation(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"deploy_user": dataSourceUser(),

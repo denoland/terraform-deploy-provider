@@ -108,12 +108,12 @@ type CommitInfo struct {
 // A Domain is a custom domain name for a Project.
 type Domain struct {
 	Domain       string   `json:"domain"`
-	Token        string   `json:"token"`
-	IsValidated  bool     `json:"isValidated"`
-	Certificates []string `json:"certificates"` // TODO(wperron) implement TlsCipher struct
-	ProjectID    string   `json:"projectId"`
-	UpdatedAt    string   `json:"updatedAt"`
-	CreatedAt    string   `json:"createdAt"`
+	Token        string   `json:"token,omitempty"`
+	IsValidated  bool     `json:"isValidated,omitempty"`
+	Certificates []string `json:"certificates,omitempty"` // TODO(wperron) implement TlsCipher struct
+	ProjectID    string   `json:"projectId,omitempty"`
+	UpdatedAt    string   `json:"updatedAt,omitempty"`
+	CreatedAt    string   `json:"createdAt,omitempty"`
 }
 
 // Possible values for the Certificates property of the Domain struct
@@ -309,15 +309,9 @@ func (c *Client) ListDomains(projectID string) ([]Domain, error) {
 	return result, nil
 }
 
-// AddDomainRequest is the expected request body schema for the AddDomain
-// function.
-type AddDomainRequest struct {
-	Domain Domain `json:"domain"`
-}
-
 // AddDomain adds a custom domain name to the project. This is typically
 // followed by the VerifyDomain function
-func (c *Client) AddDomain(projectID string, newDomain AddDomainRequest) (Domain, error) {
+func (c *Client) AddDomain(projectID string, newDomain Domain) (Domain, error) {
 	path := fmt.Sprintf("/api/projects/%s/domains", projectID)
 
 	bs, err := json.Marshal(newDomain)
