@@ -107,20 +107,40 @@ type CommitInfo struct {
 
 // A Domain is a custom domain name for a Project.
 type Domain struct {
-	Domain       string   `json:"domain"`
-	Token        string   `json:"token"`
-	IsValidated  bool     `json:"isValidated"`
-	Certificates []string `json:"certificates"` // TODO(wperron) implement TlsCipher struct
-	ProjectID    string   `json:"projectId"`
-	UpdatedAt    string   `json:"updatedAt"`
-	CreatedAt    string   `json:"createdAt"`
+	Domain               string                `json:"domain"`
+	Token                string                `json:"token"`
+	IsValidated          bool                  `json:"isValidated"`
+	Certificates         []Certificate         `json:"certificates"`
+	ProvisioningAttempts []ProvisioningAttempt `json:"provisioningAttempts"`
+	ProjectID            string                `json:"projectId"`
+	UpdatedAt            string                `json:"updatedAt"`
+	CreatedAt            string                `json:"createdAt"`
 }
 
 // Possible values for the Certificates property of the Domain struct
 const (
-	TLSCipherRsa = "rsa"
-	TLSCipherEc  = "ec"
+	TLSCipherRsa         = "rsa"
+	TLSCipherEc          = "ec"
+	TLSStrategyAutomatic = "automatic"
+	TLSStrategyManual    = "manual"
 )
+
+type Certificate struct {
+	Cipher               string `json:"cipher"`
+	ProvisioningStrategy string `json:"provisioningStrategy"`
+	UpdatedAt            string `json:"updatedAt"`
+	CreatedAt            string `json:"createdAt"`
+	ExpiresAt            string `json:"expiresAt"`
+}
+
+type ProvisioningAttempt struct {
+	Domain      string `json:"domain"`
+	Cipher      string `json:"cipher"`
+	Error       string `json:"error,omitempty"`
+	UpdatedAt   string `json:"updatedAt"`
+	CreatedAt   string `json:"createdAt"`
+	CompletedAt string `json:"completedAt,omitempty"`
+}
 
 // ListProjects returns a slice of Projects owned by the current User.
 func (c *Client) ListProjects() ([]Project, error) {
