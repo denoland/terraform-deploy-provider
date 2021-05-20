@@ -35,6 +35,9 @@ fmt:
 lint: tools
 	golangci-lint run ./...
 
+testacc:
+	TF_ACC=1 go test ./... -v -count=1
+
 docscheck: tools
 	@tfproviderdocs check \
 		-allowed-resource-subcategories-file website/allowed-subcategories.txt \

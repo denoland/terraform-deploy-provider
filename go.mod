@@ -3,10 +3,10 @@ module github.com/wperron/terraform-deploy-provider
 go 1.16
 
 require (
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.5.0
+	github.com/aws/aws-sdk-go v1.37.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.8.2 // indirect
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1
 	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/zclconf/go-cty v1.7.1 // indirect
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/tools v0.0.0-20201028111035-eafbe7b904eb // indirect
+	google.golang.org/api v0.34.0 // indirect
 )
