@@ -41,7 +41,7 @@ func createCustomDomainValidation(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if err := c.ProvisionCertificate(projectID, domainName); err != nil {
+	if err := c.ProvisionCertificateAutomatic(projectID, domainName); err != nil {
 		return err
 	}
 

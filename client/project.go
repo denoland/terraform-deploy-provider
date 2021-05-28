@@ -360,8 +360,24 @@ func (c *Client) VerifyDomain(projectID, domainName string) error {
 	return c.request("POST", path, nil, nil, nil)
 }
 
-// ProvisionCertificate creates a valid TLS certificate for a custom domain name.
-func (c *Client) ProvisionCertificate(projectID, domainName string) error {
+// ProvisionCertificateAutomatic automatically provisions a valid TLS
+// certificate for a custom domain name.
+func (c *Client) ProvisionCertificateAutomatic(projectID, domainName string) error {
 	path := fmt.Sprintf("/api/projects/%s/domains/%s/certificates", projectID, domainName)
-	return c.request("POST", path, nil, nil, nil)
+	bs, err := json.Marshal(map[string]string{"strategy": "automatic"})
+	if err != nil {
+		return err
+	}
+	return c.request("POST", path, nil, bytes.NewBuffer(bs), nil)
+}
+
+// ProvisionCertificateManual adds a custom TLS certificate for a custom domain
+// name.
+func (c *Client) ProvisionCertificateManual(projectID, domainName string, certificateChain string, privateKey string) error {
+	path := fmt.Sprintf("/api/projects/%s/domains/%s/certificates", projectID, domainName)
+	bs, err := json.Marshal(map[string]string{"strategy": "manual", "certificateChain": certificateChain, "privateKey": privateKey})
+	if err != nil {
+		return err
+	}
+	return c.request("POST", path, nil, bytes.NewBuffer(bs), nil)
 }
