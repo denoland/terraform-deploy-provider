@@ -16,6 +16,7 @@ func Provider() *schema.Provider {
 			"api_token": {
 				Type:        schema.TypeString,
 				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DEPLOY_TOKEN", nil),
 				Description: "API Token used for accessing Deno Deploy",
 			},
 		},
