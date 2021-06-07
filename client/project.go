@@ -107,20 +107,40 @@ type CommitInfo struct {
 
 // A Domain is a custom domain name for a Project.
 type Domain struct {
-	Domain       string   `json:"domain"`
-	Token        string   `json:"token,omitempty"`
-	IsValidated  bool     `json:"isValidated,omitempty"`
-	Certificates []string `json:"certificates,omitempty"` // TODO(wperron) implement TlsCipher struct
-	ProjectID    string   `json:"projectId,omitempty"`
-	UpdatedAt    string   `json:"updatedAt,omitempty"`
-	CreatedAt    string   `json:"createdAt,omitempty"`
+	Domain               string                `json:"domain"`
+	Token                string                `json:"token,omitempty"`
+	IsValidated          bool                  `json:"isValidated,omitempty"`
+	Certificates         []Certificate         `json:"certificates,omitempty"`
+	ProvisioningAttempts []ProvisioningAttempt `json:"provisioningAttempts,omitempty"`
+	ProjectID            string                `json:"projectId,omitempty"`
+	UpdatedAt            string                `json:"updatedAt,omitempty"`
+	CreatedAt            string                `json:"createdAt,omitempty"`
 }
 
 // Possible values for the Certificates property of the Domain struct
 const (
-	TLSCipherRsa = "rsa"
-	TLSCipherEc  = "ec"
+	TLSCipherRsa         = "rsa"
+	TLSCipherEc          = "ec"
+	TLSStrategyAutomatic = "automatic"
+	TLSStrategyManual    = "manual"
 )
+
+type Certificate struct {
+	Cipher               string `json:"cipher"`
+	ProvisioningStrategy string `json:"provisioningStrategy"`
+	UpdatedAt            string `json:"updatedAt"`
+	CreatedAt            string `json:"createdAt"`
+	ExpiresAt            string `json:"expiresAt"`
+}
+
+type ProvisioningAttempt struct {
+	Domain      string `json:"domain"`
+	Cipher      string `json:"cipher"`
+	Error       string `json:"error,omitempty"`
+	UpdatedAt   string `json:"updatedAt"`
+	CreatedAt   string `json:"createdAt"`
+	CompletedAt string `json:"completedAt,omitempty"`
+}
 
 // ListProjects returns a slice of Projects owned by the current User.
 func (c *Client) ListProjects() ([]Project, error) {

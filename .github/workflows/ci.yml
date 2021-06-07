@@ -28,3 +28,16 @@ jobs:
     - uses: dprint/check@v1.3
     # - name: Check docs
     #   run: make docscheck
+  test:
+    name: Unit & Acceptance tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16
+    - name: Acceptance Tests
+      run: make testacc
+      env:
+        DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}

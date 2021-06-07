@@ -36,7 +36,7 @@ func dataSourceUserRead(d *schema.ResourceData, m interface{}) error {
 	res, err := c.CurrentUser()
 
 	if err != nil {
-		return fmt.Errorf("Error getting Current User: %w", err)
+		return fmt.Errorf("error getting Current User: %w", err)
 	}
 
 	log.Printf("[DEBUG] Received Caller Identity: %s %s", res.ID, res.Name)
