@@ -202,7 +202,7 @@ func createProject(d *schema.ResourceData, meta interface{}) error {
 		ghLinkList := gh.([]interface{})
 		ghLink := ghLinkList[0].(map[string]interface{})
 		if _, err := c.LinkProject(client.LinkProjectRequest{
-			ProjectID:    d.Id(),
+			ProjectID:    project.ID,
 			Organization: ghLink["organization"].(string),
 			Repo:         ghLink["repo"].(string),
 			Entrypoint:   ghLink["entrypoint"].(string),
