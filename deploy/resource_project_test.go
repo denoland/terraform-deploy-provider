@@ -57,7 +57,7 @@ func TestAccProject_basic(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars:   make(map[string]string),
+						EnvVars:   make(client.NewEnvVars),
 					}),
 				),
 			},
@@ -92,7 +92,7 @@ func TestAccProject_envVars(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars: map[string]string{
+						EnvVars: client.NewEnvVars{
 							"foo":   "bar",
 							"fruit": "banana",
 						},
@@ -128,7 +128,7 @@ func TestAccProject_github(t *testing.T) {
 						"deploy_project.test", "id",
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
-						EnvVars: make(map[string]string),
+						EnvVars: make(client.NewEnvVars),
 						GitHub: &testGitHub{
 							Org:        "wperron",
 							Repo:       "terraform-deploy-provider",
@@ -169,7 +169,7 @@ func TestAccProject_linkAndUnlink(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars:   make(map[string]string),
+						EnvVars:   make(client.NewEnvVars),
 					}),
 				),
 			},
@@ -187,7 +187,7 @@ func TestAccProject_linkAndUnlink(t *testing.T) {
 						"deploy_project.test", "id",
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
-						EnvVars: make(map[string]string),
+						EnvVars: make(client.NewEnvVars),
 						GitHub: &testGitHub{
 							Org:        "wperron",
 							Repo:       "terraform-deploy-provider",
@@ -211,7 +211,7 @@ func TestAccProject_linkAndUnlink(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars:   make(map[string]string),
+						EnvVars:   make(client.NewEnvVars),
 						GitHub:    nil,
 					}),
 				),
@@ -256,7 +256,7 @@ func testAccProjectCheckDestroy(p *client.Project) resource.TestCheckFunc {
 
 type testProductionDeployment struct {
 	SourceUrl *string
-	EnvVars   map[string]string
+	EnvVars   client.NewEnvVars
 	GitHub    *testGitHub
 }
 

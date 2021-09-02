@@ -156,12 +156,15 @@ func (c *Client) ListProjects() ([]Project, error) {
 // CreateProjectRequest is the expected request body schema for the
 // CreateProject function.
 type CreateProjectRequest struct {
-	Name    string            `json:"name"`
-	EnvVars map[string]string `json:"envVars"`
+	Name    string     `json:"name"`
+	EnvVars NewEnvVars `json:"envVars"`
 }
 
+// NewEnvVars is the expected request body schema for the NewEnvVars function.
+type NewEnvVars map[string]string
+
 // CreateProject creates a new project with the given name.
-func (c *Client) CreateProject(name string, envVars map[string]string) (Project, error) {
+func (c *Client) CreateProject(name string, envVars NewEnvVars) (Project, error) {
 	project := CreateProjectRequest{
 		Name:    name,
 		EnvVars: envVars,
@@ -296,7 +299,7 @@ func (c *Client) GetLogs(projectID string, deploymentID string) (interface{}, er
 }
 
 // UpdateEnvVars overwrites the environment variables of a given Project.
-func (c *Client) UpdateEnvVars(projectID string, newVars map[string]string) error {
+func (c *Client) UpdateEnvVars(projectID string, newVars NewEnvVars) error {
 	path := fmt.Sprintf("/api/projects/%s/env", projectID)
 
 	bs, err := json.Marshal(newVars)
