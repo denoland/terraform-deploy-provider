@@ -57,7 +57,7 @@ func TestAccProject_basic(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars:   client.EnvVars{},
+						EnvVars:   make(client.NewEnvVars),
 					}),
 				),
 			},
@@ -92,7 +92,7 @@ func TestAccProject_envVars(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars: client.EnvVars{
+						EnvVars: client.NewEnvVars{
 							"foo":   "bar",
 							"fruit": "banana",
 						},
@@ -128,7 +128,7 @@ func TestAccProject_github(t *testing.T) {
 						"deploy_project.test", "id",
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
-						EnvVars: client.EnvVars{},
+						EnvVars: make(client.NewEnvVars),
 						GitHub: &testGitHub{
 							Org:        "wperron",
 							Repo:       "terraform-deploy-provider",
@@ -169,7 +169,7 @@ func TestAccProject_linkAndUnlink(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars:   client.EnvVars{},
+						EnvVars:   make(client.NewEnvVars),
 					}),
 				),
 			},
@@ -187,7 +187,7 @@ func TestAccProject_linkAndUnlink(t *testing.T) {
 						"deploy_project.test", "id",
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
-						EnvVars: client.EnvVars{},
+						EnvVars: make(client.NewEnvVars),
 						GitHub: &testGitHub{
 							Org:        "wperron",
 							Repo:       "terraform-deploy-provider",
@@ -211,7 +211,7 @@ func TestAccProject_linkAndUnlink(t *testing.T) {
 					),
 					testAccProjectDeployment(&project, testProductionDeployment{
 						SourceUrl: &source,
-						EnvVars:   client.EnvVars{},
+						EnvVars:   make(client.NewEnvVars),
 						GitHub:    nil,
 					}),
 				),
@@ -256,7 +256,7 @@ func testAccProjectCheckDestroy(p *client.Project) resource.TestCheckFunc {
 
 type testProductionDeployment struct {
 	SourceUrl *string
-	EnvVars   client.EnvVars
+	EnvVars   client.NewEnvVars
 	GitHub    *testGitHub
 }
 
@@ -274,20 +274,16 @@ func testAccProjectDeployment(p *client.Project, expected testProductionDeployme
 		if p.ProductionDeployment == nil {
 			return fmt.Errorf("no production deployment found")
 		}
-		if _, ok := p.ProductionDeployment.EnvVars["DENO_DEPLOYMENT_ID"]; !ok {
+		if !includes(p.ProductionDeployment.EnvVars, "DENO_DEPLOYMENT_ID") {
 			return fmt.Errorf("production deployment doesn't have a `DENO_DEPLOYMENT_ID` environment variable")
 		}
 		if expected.SourceUrl != nil && *expected.SourceUrl != p.ProductionDeployment.URL {
 			return fmt.Errorf("expected production deployment with a source url %s, found %s", *expected.SourceUrl, p.ProductionDeployment.URL)
 		}
 		if len(expected.EnvVars) > 0 {
-			for k, v := range expected.EnvVars {
-				actual, ok := p.ProductionDeployment.EnvVars[k]
-				if !ok {
+			for k := range expected.EnvVars {
+				if !includes(p.ProductionDeployment.EnvVars, k) {
 					return fmt.Errorf("could not find the expected %s environment variable", k)
-				}
-				if actual != v {
-					return fmt.Errorf("expected environment variable %s to be %s, found %s", k, v, actual)
 				}
 			}
 		}
@@ -343,3 +339,12 @@ resource "deploy_project" "test" {
   }
 }
 `
+
+func includes(l []string, s string) bool {
+	for _, e := range l {
+		if e == s {
+			return true
+		}
+	}
+	return false
+}
