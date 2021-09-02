@@ -41,7 +41,7 @@ type Project struct {
 }
 
 // EnvVars is a simple map used to created environment variables in a Project.
-type EnvVars map[string]string
+type EnvVars []string
 
 // A GitHubLink is used in a Project to link it to a GitHub repository. it
 // contains a Repository struct and an entrypoint corresponding to the source
@@ -156,12 +156,12 @@ func (c *Client) ListProjects() ([]Project, error) {
 // CreateProjectRequest is the expected request body schema for the
 // CreateProject function.
 type CreateProjectRequest struct {
-	Name    string  `json:"name"`
-	EnvVars EnvVars `json:"envVars"`
+	Name    string            `json:"name"`
+	EnvVars map[string]string `json:"envVars"`
 }
 
 // CreateProject creates a new project with the given name.
-func (c *Client) CreateProject(name string, envVars EnvVars) (Project, error) {
+func (c *Client) CreateProject(name string, envVars map[string]string) (Project, error) {
 	project := CreateProjectRequest{
 		Name:    name,
 		EnvVars: envVars,
@@ -296,7 +296,7 @@ func (c *Client) GetLogs(projectID string, deploymentID string) (interface{}, er
 }
 
 // UpdateEnvVars overwrites the environment variables of a given Project.
-func (c *Client) UpdateEnvVars(projectID string, newVars EnvVars) error {
+func (c *Client) UpdateEnvVars(projectID string, newVars map[string]string) error {
 	path := fmt.Sprintf("/api/projects/%s/env", projectID)
 
 	bs, err := json.Marshal(newVars)

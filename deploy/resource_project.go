@@ -120,21 +120,7 @@ func resourceProject() *schema.Resource {
 						"env_var": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"key": {
-										Type:     schema.TypeString,
-										Required: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-									},
-									"value": {
-										Type:      schema.TypeString,
-										Required:  true,
-										Sensitive: true,
-										Elem:      &schema.Schema{Type: schema.TypeString},
-									},
-								},
-							},
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"updated_at": {
 							Type:     schema.TypeString,
@@ -179,7 +165,7 @@ func resourceProject() *schema.Resource {
 func createProject(d *schema.ResourceData, meta interface{}) error {
 	c := meta.(*client.Client)
 	name := d.Get("name").(string)
-	vars := make(client.EnvVars)
+	vars := make(map[string]string)
 	tmp := d.Get("env_var").([]interface{})
 	for _, v := range tmp {
 		keyval := v.(map[string]interface{})
@@ -260,7 +246,7 @@ func updateProject(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("env_var") {
-		vars := make(client.EnvVars)
+		vars := make(map[string]string)
 		tmp := d.Get("env_var").([]interface{})
 		for _, v := range tmp {
 			keyval := v.(map[string]interface{})
@@ -351,14 +337,14 @@ func productionDeploymentToTerraformSchema(depl *client.Deployment) []interface{
 		}
 	}
 
-	vars := []map[string]interface{}{}
-	for k, v := range depl.EnvVars {
-		vars = append(vars, map[string]interface{}{
-			"key":   k,
-			"value": v,
-		})
-	}
-	tfMap["env_var"] = vars
+	// vars := []map[string]interface{}{}
+	// for k, v := range depl.EnvVars {
+	// 	vars = append(vars, map[string]interface{}{
+	// 		"key":   k,
+	// 		"value": v,
+	// 	})
+	// }
+	tfMap["env_var"] = depl.EnvVars
 	tfMap["updated_at"] = depl.UpdatedAt
 	tfMap["created_at"] = depl.CreatedAt
 
