@@ -1,4 +1,4 @@
-// Copyright 2021 William Perron. All rights reserved. MIT License.
+// Copyright 2021 Deno Land Inc. All rights reserved. MIT License.
 package main
 
 import (
